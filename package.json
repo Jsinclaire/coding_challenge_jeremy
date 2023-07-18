@@ -1,0 +1,33 @@
+{
+  "name": "coding-challenge",
+  "author": "Jeremy Sinclaire jersinclaire@gmail.com",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "concurrently \"npm run main\" \"npm run worker\"",
+    "worker": "node worker.js",
+    "main": "node main.js",
+    "create-stream": "node createAccountStream.js",
+    "init": "node init.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "axios": "1.4.0",
+    "bee-queue": "^1.5.0",
+    "bull": "4.10.4",
+    "concurrently": "8.2.0",
+    "date-fns": "^2.30.0",
+    "dotenv": "16.3.1",
+    "milliseconds": "^1.0.3",
+    "mongodb": "5.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.45.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.1",
+    "eslint-plugin-promise": "^6.1.1"
+  }
+}
