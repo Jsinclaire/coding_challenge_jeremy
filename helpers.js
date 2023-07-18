@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import 'dotenv/config'
 import { MongoClient } from 'mongodb'
 
 export const getMongoClient = function () {
@@ -11,7 +12,7 @@ export const getMongoClient = function () {
 }
 
 export const connectToDatabase = async function () {
-  const uri = dotenv.config().parsed.DB_MONGO_DSN
+  const uri = process.env.DB_MONGO_DSN
 
   const client = new MongoClient(uri)
 

@@ -67,27 +67,14 @@ async function readAccountUpdatesStream () {
   return null
 }
 
-// Main function
-async function main () {
-  try {
-    await readAccountUpdatesStream()
-  } catch (error) {
-    console.error('main process::An error occurred:', error)
-    return error
-  }
-
-  // SHUTTING DOWN THE SYSTEM GRACEFULLY
-
-  return 'Shutting down the system gracefully'
-}
-
 // Start the program
-main()
-  .then((result) => {
+(async () => {
+  try {
+    const result = await readAccountUpdatesStream()
     console.log('Main process::result', result)
     process.exit(0)
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('Main process::Error in main function:', error)
     process.exit(1)
-  })
+  }
+})()

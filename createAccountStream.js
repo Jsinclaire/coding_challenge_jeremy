@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { getRandomDelay } from './helpers.js'
+import { getRandomDelay, sleep } from './helpers.js'
 import Bull from 'bull'
 
 // Read account updates from a JSON file
@@ -10,9 +10,8 @@ function readAccountUpdates (filePath) {
 
 async function processAccount (account) {
   const accountStreamQueue = new Bull('solana-account-stream')
-  await accountStreamQueue.add(account)
 
-  return null
+  return accountStreamQueue.add(account)
 }
 
 // Main function
@@ -25,29 +24,29 @@ async function createAccountUpdatesStream () {
     let i = 0
     for (const accountUpdate of accountUpdates) {
       const delay = getRandomDelay(0, 1000)
-      await new Promise((resolve) => setTimeout(resolve, delay))
-      console.log(`account stream ${i} of ${accountUpdates.length}`, accountUpdate.id, accountUpdate.version)
+      await sleep(delay)
+      console.log(`create account stream::account stream: ${i} of ${accountUpdates.length}`, 'id', accountUpdate.id, 'version', accountUpdate.version)
 
       await processAccount(accountUpdate)
-      // if (i===1) break
+
       i++
     }
   } catch (error) {
-    console.error('An error occurred:', error)
+    console.error('create account stream::An error occurred:', error)
   }
 
   return 'Shutting down the system'
 }
 
-// Function to process and log account updates
-
 // Start the program
-createAccountUpdatesStream()
-  .then((result) => {
-    console.log('Main function result:', result)
+
+(async () => {
+  try {
+    const result = await createAccountUpdatesStream()
+    console.log('create account stream::Main function result:', result)
     process.exit(0)
-  })
-  .catch((error) => {
-    console.error('Error in main function:', error)
+  } catch (error) {
+    console.error('create account stream::Error in main function:', error)
     process.exit(1)
-  })
+  }
+})()

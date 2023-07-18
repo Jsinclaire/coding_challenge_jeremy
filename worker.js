@@ -33,12 +33,14 @@ async function main () {
 }
 
 // Start the program
-main()
-  .then((result) => {
+
+(async () => {
+  try {
+    const result = await main()
     console.log('worker process::result:', result)
     process.exit(0)
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('worker process::Error in main function:', error)
     process.exit(1)
-  })
+  }
+})()
