@@ -1,4 +1,5 @@
 import { connectToDatabase, getMongoClient } from './helpers.js'
+// Initialization file to create a mongoDB collection and a compound index on the specified fields.
 
 async function createCollection (db) {
   await db.createCollection('solanaAccounts')

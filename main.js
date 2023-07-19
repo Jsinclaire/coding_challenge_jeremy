@@ -1,5 +1,9 @@
 import Bull from 'bull'
 import { getMongoClient, connectToDatabase, sleep } from './helpers.js'
+// Real-time system that processes a live stream of account updates
+// The AccountProcessor class reads the stream of data from the primary queue ('solana-account-stream'),
+// schedule a job if needed and cancel jobs if needed in the secondary queue ('solana-account-process').
+// The AccountDataPrinter is responsible for computing the query that runs after the accounts have stopped coming trough.
 
 class AccountProcessor {
   constructor (accountStreamQueueName, accountProcessQueueName) {

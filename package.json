@@ -18,6 +18,7 @@
     "bull": "4.10.4",
     "concurrently": "8.2.0",
     "dotenv": "16.3.1",
+    "jest": "^29.6.1",
     "mongodb": "5.7.0"
   },
   "devDependencies": {
