@@ -53,4 +53,7 @@ I would monitor the CPU and memory usage of the system to ensure that the system
 TODO:
 
 
-add tests
+add tests with Jest
+add TS?
+replace mongodb with postgresql?
+refactor main.js -> too many if statements
