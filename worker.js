@@ -1,5 +1,7 @@
 import Bull from 'bull'
 import { getMongoClient, connectToDatabase } from './helpers.js'
+// The AccountProcessor class reads from the secondary queue ('solana-account-process'),
+// and add jobs that become ready to process to the database, where values are indexed by the MongoDB database.
 
 class AccountProcessor {
   constructor () {

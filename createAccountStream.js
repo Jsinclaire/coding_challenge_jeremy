@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { getRandomDelay, sleep } from './helpers.js'
 import Bull from 'bull'
+
 // Here we emulate a stream of account objects coming from a Solana node at a random interval between 0 and 1000 ms.
 
 class AccountUpdater {

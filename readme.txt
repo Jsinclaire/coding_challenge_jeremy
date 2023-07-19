@@ -31,17 +31,17 @@ Description of why I chose the design patterns I did:
 Maintaining a priority queue or a scheduled task mechanism is an important part of handling callbacks in a real-time system.
 I used the solid package 'bull' to implement a scheduled task mechanism.
 This mechanism ensures that callbacks are executed in the correct order based on their scheduled time.
-I chose this design pattern because it allows to scale the system by adding more workers to consume the data from the queue and store it in the database.
+I chose this design pattern because it allows to scale the system by adding more workers to consume the data from the queue - it is possible to scale the system easily with heavy jobs running in parallel.
 The primary queue also allows to ingest large amounts of data without blocking the main node app.
-I chose MongoDB because it allows to index the data and store Solana account objects easily.
-I chose the package 'bull' because it uses redis as a queue system, which allow very fast reads and writes, because the data is stored in memory.
+I chose MongoDB because it allows to index the data and store Solana account objects easily where the objects have different structure.
+I chose the package 'bull' because it uses redis as a queue system, which allow very fast reads and writes (the data is stored in memory).
 
 A description of what observability you would add if this was a production system.
 
 In a production system I would verify each function with unit tests, implement integration tests and end to end tests.
 In a production system I would also add a logging system to log errors and debug information.
 I would use a more refined scheduling mechanism like a priority queue.
-I would create a datalake to store objects with different schemas, with a parquet file system to process complex queries (if needed).
+I would create a datalake to store objects with different schemas, with a parquet file system to process complex queries.
 
 What would you monitor for a production rollout?
 
