@@ -17,6 +17,8 @@ Run the first console - IMPORTANT -> run this command first:
 Run the second console - IMPORTANT -> run the command in a second console - to start simulating a blockchain node, and stream data updates continuously:
 -npm run create-stream
 
+Note: if you want to re-run the program you need to drop the mongodb solanaAccounts collection and re-run npm run init
+
 Description of how I chose the design patterns I did:
 
 To simulate a constant stream of Solana accounts I created a stream of data from the json file and pushed it to a redis based queue system (bull) that is consumed by the main node app.
@@ -50,6 +52,5 @@ I would monitor the CPU and memory usage of the system to ensure that the system
 
 TODO:
 
-refactor with classes
 
 add tests

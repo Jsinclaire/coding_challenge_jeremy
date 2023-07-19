@@ -1,146 +1,143 @@
-import Bull from 'bull'
-import { getMongoClient, connectToDatabase, sleep } from './helpers.js'
-// Real-time system that processes a live stream of account updates
+import Bull from 'bull';
+import { getMongoClient, connectToDatabase, sleep } from './helpers.js';
 
-async function readAccountUpdatesStream () {
-  console.log('MAIN PROCESS STARTED')
-  const accountStreamQueue = new Bull('solana-account-stream')
-  const accountProcessQueue = new Bull('solana-account-process')
+class AccountProcessor {
+  constructor(accountStreamQueueName, accountProcessQueueName) {
+    this.accountStreamQueue = new Bull(accountStreamQueueName);
+    this.accountProcessQueue = new Bull(accountProcessQueueName);
+    this.tick = 0;
+  }
 
-  let tick = 0
+  async processAccountUpdatesStream() {
+    console.log('MAIN PROCESS STARTED');
 
-  do {
-    const waitingJobs = await accountStreamQueue.getJobs(['waiting'])
+    do {
+      const waitingJobs = await this.accountStreamQueue.getJobs(['waiting']);
 
-    // THERE IS AN INCOMING ACCOUNT
-    if (waitingJobs.length > 0) {
+      if (waitingJobs.length > 0) {
+        const job = waitingJobs[waitingJobs.length - 1];
+        await job.remove();
+        const isIsIncomingDataCorrupted = job.data.version === undefined;
 
-      // get the last job
-      const job = waitingJobs[waitingJobs.length - 1]
-
-      await job.remove()
-
-      const idIncomingDataCorrupted = job.data.id === undefined
-
-      if(idIncomingDataCorrupted){ console.log('CORRUPTED DATA IN JOB - DISCARDING DATA', job.data.id)}
-
-      if (!idIncomingDataCorrupted) {
-
-
-      // get running processes
-      const accountProcessJobs = await accountProcessQueue.getJobs(['delayed'])
-
-      const isProcessesRunning = accountProcessJobs.length > 0
-
-      if (!isProcessesRunning) {
-        console.log('NO PROCESS RUNNING CURRENTLY- ADDING THE JOB TO PROCESSING - VERSION', job.data.version, 'ID', job.data.id)
-        await accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs })
-      }
-
-      if (isProcessesRunning) {
-      // CHECK IF JOB IS ALREADY IN THE PROCESS QUEUE AND IF VERSION IS HIGHER
-        const processingJobs = accountProcessJobs.filter((item) => item.data.id === job.data.id) || []
-        let skipCycle = false
-
-        if (processingJobs.length === 0) {
-          await accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs })
-          skipCycle = true
+        if (isIsIncomingDataCorrupted) {
+          console.log('CORRUPTED DATA IN JOB - DISCARDING DATA', job.data.id);
         }
-        if (!skipCycle) {
-          const orderedProcessingJobs = processingJobs.sort((a, b) => a.data.version - b.data.version)
 
-          const processingJob = orderedProcessingJobs[orderedProcessingJobs.length - 1]
+        if (!isIsIncomingDataCorrupted) {
+          const accountProcessJobs = await this.accountProcessQueue.getJobs(['delayed']);
+          const isProcessesRunning = accountProcessJobs.length > 0;
 
-          const isNewVersion = processingJob.data.version < job.data.version
+          if (!isProcessesRunning) {
+            console.log('NO PROCESS RUNNING CURRENTLY - ADDING THE JOB TO PROCESSING - VERSION', job.data.version, 'ID', job.data.id);
+            await this.accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs });
+          }
 
-          if (isNewVersion) {
-            console.log('CANCEL THE OLD JOB + SCHEDULE A NEW ONE - VERSION', processingJob.data.version, 'ID', processingJob.data.id)
-            // cancel the old job
-            const toRemove = await accountProcessQueue.getJob(processingJob.id)
+          if (isProcessesRunning) {
+            const processingJobs = accountProcessJobs.filter((item) => item.data.id === job.data.id) || [];
+            let skipCycle = false;
 
-            try {
-             await toRemove.remove()
-            } catch (error) {
-            console.log('ERROR REMOVING JOB', error)
+            if (processingJobs.length === 0) {
+              await this.accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs });
+              skipCycle = true;
             }
 
+            if (!skipCycle) {
+              const orderedProcessingJobs = processingJobs.sort((a, b) => a.data.version - b.data.version);
+              const processingJob = orderedProcessingJobs[orderedProcessingJobs.length - 1];
+              const isNewVersion = processingJob.data.version < job.data.version;
 
-            // add the new job
-            await accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs })
-          }
-          if (!isNewVersion) {
-            console.log('AN OLD VERSION OF THE ACCOUNT IS INGESTED - IGNORE THE UPDATE', processingJob.data.version, 'ID', processingJob.data.id)
+              if (isNewVersion) {
+                console.log('CANCEL THE OLD JOB + SCHEDULE A NEW ONE - VERSION', processingJob.data.version, 'ID', processingJob.data.id);
+                const toRemove = await this.accountProcessQueue.getJob(processingJob.id);
+
+                try {
+                  await toRemove.remove();
+                } catch (error) {
+                  console.log('ERROR REMOVING JOB', error);
+                }
+
+                await this.accountProcessQueue.add(job.data, { delay: job.data.callbackTimeMs });
+              }
+
+              if (!isNewVersion) {
+                console.log('AN OLD VERSION OF THE ACCOUNT IS INGESTED - IGNORE THE UPDATE', processingJob.data.version, 'ID', processingJob.data.id);
+              }
+            }
           }
         }
       }
-    }
-  }
-    tick++
-    await sleep(50)
-  } while (tick < 2400)
 
-  return 'Shutting down the system gracefully'
+      this.tick++;
+      await sleep(50);
+    } while (this.tick < 2400);
+
+    return 'Shutting down the system gracefully';
+  }
 }
 
-// IT WOULD BE NICE TO HAVE A RELATIONAL DATABASE FOR THIS PART
-async function printData () {
-  console.log('PRINT DATA STARTED')
-  try {
-    await connectToDatabase()
-    const client = await getMongoClient()
-    const myColl = client.collection('solanaAccounts')
-    const parentProgramSubTypes = await myColl.distinct('parentProgramSubType')
-    const latestVersion = []
-    for (const parentProgramSubType of parentProgramSubTypes) {
-      const accountsOfOneParentProgramSubType = await myColl.find({ parentProgramSubType }).toArray()
-      const distinctAccounts = [...new Set(accountsOfOneParentProgramSubType.map(item => item.id))]
-      for (const id of distinctAccounts) {
-        const account = accountsOfOneParentProgramSubType.filter(item => item.id === id).sort((a, b) => a.version - b.version)
+class AccountDataPrinter {
+  constructor() {
+    this.parentProgramSubTypes = [];
+    this.latestVersion = [];
+  }
 
-        const lastVersion = account[account.length - 1]
-        latestVersion.push(lastVersion)
+  async printData() {
+    console.log('PRINT DATA STARTED');
+
+    try {
+      await connectToDatabase();
+      const client = await getMongoClient();
+      const myColl = client.collection('solanaAccounts');
+      this.parentProgramSubTypes = await myColl.distinct('parentProgramSubType');
+
+      for (const parentProgramSubType of this.parentProgramSubTypes) {
+        const accountsOfOneParentProgramSubType = await myColl.find({ parentProgramSubType }).toArray();
+        const distinctAccounts = [...new Set(accountsOfOneParentProgramSubType.map(item => item.id))];
+
+        for (const id of distinctAccounts) {
+          const account = accountsOfOneParentProgramSubType.filter(item => item.id === id).sort((a, b) => a.version - b.version);
+          const lastVersion = account[account.length - 1];
+          this.latestVersion.push(lastVersion);
+        }
       }
-    }
 
-    parentProgramSubTypes.forEach( (item) => {
-      const version = latestVersion
-        .filter(item2 => item2.parentProgramSubType === item)
-        .sort((a, b) => a.tokens - b.tokens)
+      this.parentProgramSubTypes.forEach((item) => {
+        const version = this.latestVersion.filter(item2 => item2.parentProgramSubType === item).sort((a, b) => a.tokens - b.tokens);
+
         if (version.length > 1) {
-          const highest = version[version.length - 1]
-          console.log('highestToken accounts by parentProgramSubType',
-            highest.parentProgramSubType,
-            'token', highest.tokens,
-            'id', highest.id,
-            'version', highest.version)
+          const highest = version[version.length - 1];
+          console.log('highestToken accounts by parentProgramSubType', highest.parentProgramSubType, 'token', highest.tokens, 'id', highest.id, 'version', highest.version);
         }
-        if (version.length === 1){
-          console.log('highestToken accounts by parentProgramSubType',
-             version[0].parentProgramSubType,
-            'token', version[0].tokens,
-            'id', version[0].id,
-            'version', version[0].version)
+
+        if (version.length === 1) {
+          console.log('highestToken accounts by parentProgramSubType', version[0].parentProgramSubType, 'token', version[0].tokens, 'id', version[0].id, 'version', version[0].version);
         }
-    })
-  } catch (error) {
-    console.error('main process::An error occurred:', error)
-    return error
-  } finally {
-    const db = await getMongoClient()
-    await db.client.close()
+      });
+    } catch (error) {
+      console.error('main process::An error occurred:', error);
+      return error;
+    } finally {
+      const db = await getMongoClient();
+      await db.client.close();
+    }
   }
 }
 
 // Start the program
 (async () => {
   try {
-    const result = await readAccountUpdatesStream()
-    await sleep(30000)
-    await printData()
-    console.log('Main process::result', result)
-    process.exit(0)
+    const accountProcessor = new AccountProcessor('solana-account-stream', 'solana-account-process');
+    const result = await accountProcessor.processAccountUpdatesStream();
+
+    await sleep(30000);
+
+    const accountDataPrinter = new AccountDataPrinter();
+    await accountDataPrinter.printData();
+
+    console.log('Main process::result', result);
+    process.exit(0);
   } catch (error) {
-    console.error('Main process::Error in main function:', error)
-    process.exit(1)
+    console.error('Main process::Error in main function:', error);
+    process.exit(1);
   }
-})()
+})();
