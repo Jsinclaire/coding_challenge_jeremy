@@ -57,3 +57,4 @@ add tests with Jest
 add TS?
 replace mongodb with postgresql?
 refactor main.js -> too many if statements
+add a better system for shutting down the program
