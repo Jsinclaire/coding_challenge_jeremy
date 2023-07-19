@@ -14,6 +14,8 @@ To run the program:
 Run the first console - IMPORTANT -> run this command first:
 -npm run start
 
+ Note: The highest token-value accounts by parent_program_subtype printing will be displayed in the first console after the accounts have stopped coming trough.
+
 Run the second console - IMPORTANT -> run the command in a second console - to start simulating a blockchain node, and stream data updates continuously:
 -npm run create-stream
 
@@ -40,7 +42,7 @@ A description of what observability you would add if this was a production syste
 
 In a production system I would verify each function with unit tests, implement integration tests and end to end tests.
 In a production system I would also add a logging system to log errors and debug information.
-I would use a more refined scheduling mechanism like a priority queue.
+I would use a more refined mechanism like a priority queue to allow fine grain control of the task priorities.
 I would create a datalake to store objects with different schemas, with a parquet file system to process complex queries.
 
 What would you monitor for a production rollout?
@@ -57,3 +59,5 @@ TODO:
 - Refactor printData function.
 - Refactor main.js -> too many if statements
 - Add a better system for shutting down the program
+
+Note: it is bad practice to commit the .env - only do it with test projects.

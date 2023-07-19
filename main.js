@@ -1,5 +1,8 @@
 import Bull from 'bull'
 import { getMongoClient, connectToDatabase, sleep } from './helpers.js'
+const mainFunctionSleep = process.env.MAIN_FUNCTION_SLEEP
+const mainFunctionTick = process.env.MAIN_FUNCTION_TICK
+const waitBeforePrint = process.env.WAIT_BEFORE_PRINT
 
 // Real-time system that processes a live stream of account updates
 // The AccountProcessor class reads the stream of data from the primary queue ('solana-account-stream'),
@@ -11,6 +14,8 @@ class AccountProcessor {
     this.accountStreamQueue = new Bull(accountStreamQueueName)
     this.accountProcessQueue = new Bull(accountProcessQueueName)
     this.tick = 0
+    this.mainFunctionSleep = mainFunctionSleep
+    this.mainFunctionTick = mainFunctionTick
   }
 
   async processAccountUpdatesStream () {
@@ -73,8 +78,8 @@ class AccountProcessor {
       }
 
       this.tick++
-      await sleep(50)
-    } while (this.tick < 2400)
+      await sleep(this.mainFunctionSleep)
+    } while (this.tick < this.mainFunctionTick)
 
     return 'Shutting down the system gracefully'
   }
@@ -86,6 +91,7 @@ class AccountDataPrinter {
     this.latestVersion = []
   }
 
+ // Note: The printData function would be much smaller if we used a relational database be we would lose the flexibility of mongoDB.
   async printData () {
     console.log('PRINT DATA STARTED')
 
@@ -134,7 +140,7 @@ class AccountDataPrinter {
     const accountProcessor = new AccountProcessor('solana-account-stream', 'solana-account-process')
     const result = await accountProcessor.processAccountUpdatesStream()
 
-    await sleep(30000)
+    await sleep(waitBeforePrint)
 
     const accountDataPrinter = new AccountDataPrinter()
     await accountDataPrinter.printData()

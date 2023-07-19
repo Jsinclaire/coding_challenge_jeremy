@@ -11,7 +11,8 @@
     "main": "node main.js",
     "create-stream": "node createAccountStream.js",
     "init": "node init.js",
-    "lint": "eslint *.js --fix"
+    "lint": "eslint *.js --fix",
+    "test": "jest"
   },
   "license": "MIT",
   "dependencies": {
