@@ -1,19 +1,21 @@
 Instructions on how to run and test your code in a local environment.
 
-You need to have node v.16 installed.
-You need to have docker installed.
+You need to have node.js v.16 installed. https://nodejs.org/en/download
+You need to have docker installed. https://docs.docker.com/engine/install/
+You need to have docker-compose installed. https://docs.docker.com/compose/install/
+You need to run the app in a linux environment.
 
-commands to run to install and initialize the program:
+Commands to run to install and initialize the program:
 -git pull git@github.com:Jsinclaire/coding_challlenge.git
 -npm install
 -npm run init
 
-to run the program:
-Run first:
--npm run start (to start listening to the stream)
+To run the program:
+Run the first console - IMPORTANT -> run this command first:
+-npm run start
 
-Run second:
--npm run create-stream  - IMPORTANT -> run the command in an second console - (to start pushing the data of coding-challenge-input.json to the stream)
+Run the second console - IMPORTANT -> run the command in a second console - to start simulating a blockchain node, and stream data updates continuously:
+-npm run create-stream
 
 Description of how I chose the design patterns I did:
 
@@ -47,7 +49,10 @@ I would monitor the CPU and memory usage of the system to ensure that the system
 
 TODO:
 
-test with all the uses cases in the json file
-add system shutdown on exit + print db contents
+add system shutdown on exit + print db contents -3h
+
+test with all the uses cases in the json file 6h
+
 refactor with classes
+
 add tests
