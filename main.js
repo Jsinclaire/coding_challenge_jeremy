@@ -19,8 +19,13 @@ async function readAccountUpdatesStream () {
       const job = waitingJobs[waitingJobs.length - 1]
 
       await job.remove()
-      if (job.data.version !== undefined) {
-        console.log('CORRUPTED DATA IN JOB - DISCARDING DATA', job.data.id)
+
+      const idIncomingDataCorrupted = job.data.id === undefined
+
+      if(idIncomingDataCorrupted){ console.log('CORRUPTED DATA IN JOB - DISCARDING DATA', job.data.id)}
+
+      if (!idIncomingDataCorrupted) {
+
 
       // get running processes
       const accountProcessJobs = await accountProcessQueue.getJobs(['delayed'])
@@ -71,12 +76,13 @@ async function readAccountUpdatesStream () {
     }
   }
     tick++
-    await sleep(100)
-  } while (tick < 1200)
+    await sleep(50)
+  } while (tick < 2400)
 
-  return null
+  return 'Shutting down the system gracefully'
 }
 
+// IT WOULD BE NICE TO HAVE A RELATIONAL DATABASE FOR THIS PART
 async function printData () {
   console.log('PRINT DATA STARTED')
   try {
@@ -103,14 +109,14 @@ async function printData () {
         if (version.length > 1) {
           const highest = version[version.length - 1]
           console.log('highestToken accounts by parentProgramSubType',
-            'parentProgramSubType', highest.parentProgramSubType,
+            highest.parentProgramSubType,
             'token', highest.tokens,
             'id', highest.id,
             'version', highest.version)
         }
         if (version.length === 1){
           console.log('highestToken accounts by parentProgramSubType',
-            'parentProgramSubType', version[0].parentProgramSubType,
+             version[0].parentProgramSubType,
             'token', version[0].tokens,
             'id', version[0].id,
             'version', version[0].version)

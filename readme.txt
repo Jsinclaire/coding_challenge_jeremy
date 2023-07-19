@@ -39,6 +39,7 @@ A description of what observability you would add if this was a production syste
 In a production system I would verify each function with unit tests, implement integration tests and end to end tests.
 In a production system I would also add a logging system to log errors and debug information.
 I would use a more refined scheduling mechanism like a priority queue.
+I would use a relational database like postgresql for the queries if I needed to make more complex queries.
 
 What would you monitor for a production rollout?
 
@@ -48,10 +49,6 @@ I would monitor the database and the database metrics to ensure that the databas
 I would monitor the CPU and memory usage of the system to ensure that the system has enough resources to handle the load.
 
 TODO:
-
-add system shutdown on exit + print db contents -3h
-
-test with all the uses cases in the json file 6h
 
 refactor with classes
 
