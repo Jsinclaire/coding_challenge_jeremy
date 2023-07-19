@@ -33,7 +33,7 @@ class AccountProcessor {
           }
 
           if (isProcessesRunning) {
-            const processingJobs = accountProcessJobs.filter((item) => item.data.id === job.data.id) || []
+            const processingJobs = accountProcessJobs.filter((item) => item.data.id === job.data.id && item.data.parentProgramSubType === job.data.parentProgramSubType) || []
             let skipCycle = false
 
             if (processingJobs.length === 0) {
