@@ -52,12 +52,4 @@ I would monitor the queue system to ensure that the data is being consumed and s
 I would monitor the database and the database metrics to ensure that the database has enough resources to handle the load.
 I would monitor the CPU and memory usage of the system to ensure that the system has enough resources to handle the load.
 
-TODO:
-
-- Add tests with Jest
-- Add TS?
-- Refactor printData function.
-- Refactor main.js -> too many if statements
-- Add a better system for shutting down the program
-
 Note: it is bad practice to commit the .env - only do it with test projects.

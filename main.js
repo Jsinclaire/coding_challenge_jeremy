@@ -121,7 +121,7 @@ class AccountDataPrinter {
         }
 
         if (version.length === 1) {
-          console.log('highestToken accounts by parentProgramSubType', version[0].parentProgramSubType, 'token', version[0].tokens, 'id', version[0].id, 'version', version[0].version)
+          console.log('highest token accounts by parent programS subtype. parentProgramSubType:', version[0].parentProgramSubType, 'token:', version[0].tokens, 'id:', version[0].id, 'version:', version[0].version)
         }
       })
     } catch (error) {
